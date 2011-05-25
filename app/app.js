@@ -54,6 +54,14 @@ exports = module.exports = (function() {
         maxAge: options.maxAge
       })
     }))
+
+    var content = root + '/app/content';
+    server.use(express.compiler({
+      src: content,
+      enable: ["markdown"]
+    }));
+    server.use(express.static( content ));
+
     server.use(express.bodyParser())
     server.use(context);
     server.use(server.router)
