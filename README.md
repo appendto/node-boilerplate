@@ -10,7 +10,7 @@
 ## Installation
 
     mkdir mynewproject && cd mynewproject
-    git clone git://github.com/hunterloftis/node-boilerplate.git .
+    git clone git://github.com/appendto/node-boilerplate.git .
     git checkout -b mynewproject
     ./setup.sh
     sudo node server.js

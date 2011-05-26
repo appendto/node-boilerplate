@@ -8,7 +8,7 @@
     "connect-timeout":">=0.0.1",
     "cluster":">=0.4.2",
     "express-messages":">=0.0.1",
-    "markdown":">=0.2.1"
+    "github-flavored-markdown":">=1.0.0"
   },
   "directories":{}
 }

@@ -7,6 +7,7 @@ var root = require('path').normalize(__dirname + '/..');
 var express = require('express'),
     connectTimeout = require('connect-timeout'),
     context = require('../lib/context'),
+    ghm = require("github-flavored-markdown"),
     stylus = require('stylus');
 
 require('../lib/math.uuid');
@@ -19,6 +20,18 @@ exports = module.exports = (function() {
       options = require('./config/options')([server.set('env')]);
 
   console.log("Environment: " + server.set('env'));
+
+  // Register a markdown theme engine
+  server.register('.md', {
+      compile: function(str, options){
+          var html = ghm.parse(str);
+          return function(locals){
+              return html.replace(/\{([^}]+)\}/g, function(_, name){
+                  return locals[name];
+              });
+          };
+      }
+  });
   
   // Config (all)
   
@@ -55,13 +68,6 @@ exports = module.exports = (function() {
       })
     }))
 
-    var content = root + '/app/content';
-    server.use(express.compiler({
-      src: content,
-      enable: ["markdown"]
-    }));
-    server.use(express.static( content ));
-
     server.use(express.bodyParser())
     server.use(context);
     server.use(server.router)
@@ -75,6 +81,30 @@ exports = module.exports = (function() {
     
     require('./config/routes')(server)
 
+    // Catch-All Route
+    // TODO - Need to implement this, and some path checking
+/*
+    server.use(function(req,res,next) {
+      var url = parse(req.url)
+        , path = decodeURIComponent(url.pathname)
+    
+      // potentially malicious path
+      if (~path.indexOf('..')) return next
+         ? next(new Error('Forbidden'))
+         : forbidden(res);
+    
+      // index.html support
+      if ('/' == path[path.length - 1]) path += 'index.html';
+
+
+      console.log(path);
+
+        console.log(req.url);
+        res.status(200, 'info', 'This is a message');
+        res.context({ message: "Hello, world!" }, 'home/index', req.param('format'));
+        next();
+    });
+*/
   })
   
   // Config (development)
