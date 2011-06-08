@@ -40,7 +40,7 @@ exports = module.exports = (function() {
     // Settings
     
     server.set('app root', root + '/app');
-    server.set('view engine', options.view_engine || 'jade');
+    server.set('view engine', options.view_engine || 'md');
     server.set('views', server.set('app root') + '/views');
     server.set('public', server.set('app root') + '/public');
     server.set('port', options.port);
@@ -81,30 +81,48 @@ exports = module.exports = (function() {
     
     require('./config/routes')(server)
 
-    // Catch-All Route
-    // TODO - Need to implement this, and some path checking
-/*
+    // Serve our Markdown Files
     server.use(function(req,res,next) {
-      var url = parse(req.url)
+      var fs = require('fs')
+        , parse = require('url').parse
+	, join = require('path').join
+        , url = parse(req.url)
         , path = decodeURIComponent(url.pathname)
-    
+    	, base = server.set('views')
+        , fullpath;
+
       // potentially malicious path
       if (~path.indexOf('..')) return next
          ? next(new Error('Forbidden'))
          : forbidden(res);
     
-      // index.html support
-      if ('/' == path[path.length - 1]) path += 'index.html';
+      // index support
+      if ('/' == path[path.length - 1]) {
+        path += 'index.md';
+      }
 
+      fullpath = join(base, path);
 
-      console.log(path);
+      // Stat the path
+      fs.stat(fullpath,function(err,stat) {
+        /**
+         * Kindly borrowed from Connect's static.js middleware
+         */
+        // ignore ENOENT
+        if (err) {
+          return 'ENOENT' == err.code ? next() : next(err);
+        // ignore directories
+        } else if (stat.isDirectory()) {
+          return next();
+        }
 
-        console.log(req.url);
-        res.status(200, 'info', 'This is a message');
-        res.context({ message: "Hello, world!" }, 'home/index', req.param('format'));
-        next();
+        if ('/' == path[0]) {
+          path = path.slice(1);
+        }
+        
+        res.render(path, { layout: true } );
+      });
     });
-*/
   })
   
   // Config (development)
